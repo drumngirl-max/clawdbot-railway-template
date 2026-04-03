@@ -1410,6 +1410,40 @@ const server = app.listen(PORT, "0.0.0.0", async () => {
     console.warn("[wrapper] WARNING: SETUP_PASSWORD is not set; /setup will error.");
   }
 
+  // Bootstrap OpenAI auth-profiles.json from OPENAI_API_KEY env var.
+  // OpenClaw looks for auth credentials in the agent's auth-profiles.json file.
+  // If the file is missing or lacks the openai provider entry, the agent fails
+  // with "No API key found for provider 'openai'". We write it on every startup
+  // so the key stays current if the Railway variable is rotated.
+  const openaiApiKey = process.env.OPENAI_API_KEY?.trim();
+  if (openaiApiKey) {
+    const authProfilesPath = path.join(STATE_DIR, "agents", "main", "agent", "auth-profiles.json");
+    try {
+      fs.mkdirSync(path.dirname(authProfilesPath), { recursive: true });
+
+      // Read existing file (if any) so we can merge rather than clobber other providers.
+      let profiles = {};
+      try {
+        profiles = JSON.parse(fs.readFileSync(authProfilesPath, "utf8"));
+      } catch {
+        // File doesn't exist or is invalid JSON — start fresh.
+      }
+
+      // Only write if the key is missing or has changed.
+      if (profiles?.openai?.apiKey !== openaiApiKey) {
+        profiles.openai = { ...profiles.openai, apiKey: openaiApiKey };
+        fs.writeFileSync(authProfilesPath, JSON.stringify(profiles, null, 2), { encoding: "utf8", mode: 0o600 });
+        console.log(`[wrapper] wrote OpenAI API key to ${authProfilesPath}`);
+      } else {
+        console.log(`[wrapper] auth-profiles.json already has current OpenAI API key — skipping write`);
+      }
+    } catch (err) {
+      console.warn(`[wrapper] failed to write auth-profiles.json: ${String(err)}`);
+    }
+  } else {
+    console.log("[wrapper] OPENAI_API_KEY not set — skipping auth-profiles.json bootstrap");
+  }
+
   // Optional operator hook to install/persist extra tools under /data.
   // This is intentionally best-effort and should be used to set up persistent
   // prefixes (npm/pnpm/python venv), not to mutate the base image.
