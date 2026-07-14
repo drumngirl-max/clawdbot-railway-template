@@ -1,0 +1,11 @@
+[build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "node server.js"
+healthcheckPath = "/healthz"
+restartPolicyType = "on_failure"
+
+# Смонтируйте волюм на /data, чтобы данные о расходах переживали редеплои,
+# и задайте DATA_DIR=/data в переменных сервиса.
