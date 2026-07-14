@@ -2,6 +2,19 @@
 
 Мини-приложение для Telegram, которое позволяет вести учёт личных расходов прямо с телефона. Открывается кнопкой в вашем боте, работает как обычное веб-приложение внутри Telegram, а данные хранятся в простом JSON-файле на сервере.
 
+## 🚀 Развернуть на Railway
+
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/github/drumngirl-max/clawdbot-railway-template)
+
+После открытия мастера деплоя задайте у сервиса:
+
+- **Root Directory** = `expense-tracker`
+- **Volume** смонтируйте на `/data`
+- **Variables:** `BOT_TOKEN` = токен от BotFather, `DATA_DIR` = `/data`
+- **Networking → Generate Domain** — получите публичный `https://`-адрес
+
+Подробности ниже в разделе «Деплой на Railway».
+
 ## Возможности
 
 - ➕ Добавление расхода: сумма, категория, комментарий, дата
